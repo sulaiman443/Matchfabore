@@ -54,13 +54,13 @@
         </div>
         
         <div id="matches-container" class="space-y-5">
-            <div class="text-center py-10 text-gray-500">جاري جلب المباريات...</div>
+            <div class="text-center py-10 text-gray-400 italic">جاري تحميل المباريات...</div>
         </div>
     </main>
 
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script>
-        // تم تحديث الرابط الخاص بك هنا بنجاح
+        // الرابط الخاص بك تم وضعه هنا بنجاح
         const SHEET_URL = 'https://docs.google.com/spreadsheets/d/19Qnmnat575ddLCocvnSO22c-eVbN4al18vE8nYxNIlc/pub?output=csv';
 
         const player = videojs('match-player', {
@@ -82,7 +82,7 @@
                 });
             } catch (error) {
                 console.error("خطأ في جلب البيانات:", error);
-                document.getElementById('matches-container').innerHTML = `<div class="text-center text-red-500">تأكد من "نشر الجدول على الويب" بصيغة CSV</div>`;
+                document.getElementById('matches-container').innerHTML = '<div class="text-center text-red-500">حدث خطأ في الاتصال بقاعدة البيانات</div>';
             }
         }
 
@@ -90,12 +90,15 @@
             const container = document.getElementById('matches-container');
             container.innerHTML = "";
             
-            if(!matches || matches.length === 0 || !matches[0].h) {
-                container.innerHTML = `<div class="text-center py-20 opacity-20 font-black italic text-2xl">لا يوجد مباريات مسجلة في الجدول</div>`;
+            // فلترة السطور الفارغة أو العناوين غير المكتملة
+            const validMatches = matches.filter(m => m.h && m.a);
+
+            if(validMatches.length === 0) {
+                container.innerHTML = `<div class="text-center py-20 opacity-20 font-black italic text-2xl">لا يوجد بث حالياً</div>`;
                 return;
             }
 
-            matches.forEach((m) => {
+            validMatches.forEach((m) => {
                 container.innerHTML += `
                     <div onclick="playStream('${m.stream}', '${m.h} × ${m.a}')" class="glass-card p-6 rounded-[2.5rem] relative group border-l-4 border-l-transparent hover:border-l-blue-600">
                         <div class="flex justify-between items-center">
@@ -128,12 +131,12 @@
         }
 
         function playStream(url, title) {
-            if(!url || url === "" || url === "رابط_البث") return alert('سيرفر البث لم يتوفر بعد لهذه المباراة');
+            if(!url || url === "" || url.includes("رابط")) return alert('سيرفر البث لم يتوفر بعد، سيتم التحديث قبل المباراة بقليل');
             document.getElementById('video-container').style.display = 'block';
             document.getElementById('player-title').innerText = title;
             
             player.src({ src: url, type: 'application/x-mpegURL' });
-            player.play().catch(e => console.log("تفاعل المستخدم مطلوب للتشغيل في iPhone"));
+            player.play().catch(e => console.log("iPhone requires user interaction"));
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -143,7 +146,7 @@
         }
 
         loadMatches();
-        setInterval(loadMatches, 120000);
+        setInterval(loadMatches, 120000); // تحديث القائمة كل دقيقتين
     </script>
 </body>
 </html>
