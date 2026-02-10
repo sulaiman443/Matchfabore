@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MatchFav Pro | البث المباشر الذكي</title>
+    <title>MatchFav Pro | Next Gen UI</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -12,118 +12,158 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        body { font-family: 'Cairo', sans-serif; background-color: #0b0f1a; color: white; overflow-x: hidden; scroll-behavior: smooth; }
-        .glass-card { background: rgba(22, 30, 46, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
-        .live-pulse { width: 10px; height: 10px; background: #ef4444; border-radius: 50%; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { transform: scale(0.95); opacity: 1; } 70% { transform: scale(1.5); opacity: 0; } 100% { transform: scale(0.95); opacity: 0; } }
-        .video-js { border-radius: 0 0 1rem 1rem; width: 100%; aspect-ratio: 16/9; }
-        .vjs-big-play-button { background-color: #2563eb !important; border: none !important; border-radius: 50% !important; }
-        .match-btn:active { transform: scale(0.98); }
+        body { font-family: 'Cairo', sans-serif; background: #050810; color: white; min-height: 100vh; }
+        
+        .glass-card { 
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .glass-card:active { transform: scale(0.96); border-color: #3b82f6; }
+
+        .time-badge {
+            background: linear-gradient(90deg, #1e3a8a 0%, #2563eb 100%);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        #video-container { display: none; border-radius: 0 0 2rem 2rem; overflow: hidden; }
     </style>
 </head>
-<body class="pb-24">
+<body class="pb-10"> 
 
-    <header class="p-4 glass-card sticky top-0 z-50 flex justify-between items-center border-b border-white/10">
-        <div class="flex items-center gap-2">
-            <h1 class="text-xl font-black text-blue-500">MATCH<span class="text-white">FAV</span></h1>
+    <header class="p-5 flex justify-between items-center sticky top-0 bg-[#050810]/80 backdrop-blur-md z-50">
+        <div class="flex flex-col">
+            <span class="text-[10px] text-blue-500 font-bold tracking-widest uppercase">تطبيق</span>
+            <h1 class="text-2xl font-black italic tracking-tighter">MATCH<span class="text-blue-600">FAV</span></h1>
         </div>
-        <div class="flex gap-4 items-center text-xs font-bold text-gray-400">10 فبراير 2026</div>
+        <a href="admin.html" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+            <i class="fas fa-user-shield text-gray-400 text-xs"></i>
+        </a>
     </header>
 
-    <main class="space-y-6">
+    <section id="video-container" class="mx-4 mb-6 shadow-2xl">
+        <video id="match-player" class="video-js vjs-fluid" controls preload="auto">
+            <source src="" type="application/x-mpegURL">
+        </video>
+        <div class="bg-blue-600 p-3 flex justify-between items-center">
+            <span id="player-title" class="text-xs font-bold italic">بث مباشر</span>
+            <button onclick="closeStream()" class="text-white"><i class="fas fa-times-circle"></i></button>
+        </div>
+    </section>
 
-        <section id="player-section" class="p-4">
-            <div class="glass-card rounded-2xl overflow-hidden border border-blue-500/30 shadow-2xl">
-                <div class="p-3 flex justify-between items-center bg-slate-900/80 text-xs font-bold">
-                    <div class="flex items-center gap-2">
-                        <div class="live-pulse"></div>
-                        <span id="channel-name">اختر مباراة لبدء البث</span>
-                    </div>
-                    <span id="live-badge" class="hidden bg-red-600 px-2 py-0.5 rounded">مباشر 4K</span>
-                </div>
-                
-                <video id="main-player" class="video-js vjs-big-play-centered" controls preload="auto" data-setup='{}'>
-                    <source src="" type="application/x-mpegURL">
-                </video>
-
-                <div id="server-list" class="hidden p-3 grid grid-cols-3 gap-2 bg-slate-900/50">
-                    <button onclick="changeServer(currentLinks.s1)" class="text-[10px] bg-blue-600 py-2 rounded font-bold">سيرفر 1</button>
-                    <button onclick="changeServer(currentLinks.s2)" class="text-[10px] bg-gray-700 py-2 rounded font-bold">سيرفر 2</button>
-                    <button onclick="changeServer(currentLinks.s3)" class="text-[10px] bg-gray-700 py-2 rounded font-bold">سيرفر 3</button>
-                </div>
+    <main class="space-y-8">
+        <section class="space-y-4">
+            <h3 class="px-6 text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-1 h-4 bg-blue-600 rounded-full"></span> الدوريات
+            </h3>
+            <div class="flex gap-4 overflow-x-auto px-6 no-scrollbar" id="leagues-filter">
+                <button onclick="filterMatches('all')" id="btn-all" class="flex-shrink-0 w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-900/40">
+                    <span class="text-[10px] font-black uppercase">الكل</span>
+                </button>
             </div>
         </section>
 
-        <section class="px-4">
-            <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
-                <i class="fas fa-calendar-day text-blue-500"></i> مباريات اليوم
-            </h2>
-            <div class="space-y-3">
-                
-                <div onclick="openMatch('ريال مدريد ضد بايرن', 'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8', 'URL_S2', 'URL_S3')" 
-                     class="match-btn glass-card p-4 rounded-xl flex justify-between items-center border-r-4 border-blue-500 cursor-pointer">
-                    <div class="text-center w-1/3 font-bold text-sm">ريال مدريد</div>
-                    <div class="text-center w-1/3">
-                        <div class="text-lg font-black text-blue-400">22:00</div>
-                        <div class="text-[10px] text-gray-500 italic underline">اضغط للمشاهدة</div>
-                    </div>
-                    <div class="text-center w-1/3 font-bold text-sm">بايرن ميونخ</div>
-                </div>
-
-                <div onclick="openMatch('الوداد ضد الفتح', 'https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8', 'URL_S2', 'URL_S3')" 
-                     class="match-btn glass-card p-4 rounded-xl flex justify-between items-center border-r-4 border-green-600 cursor-pointer">
-                    <div class="text-center w-1/3 font-bold text-sm">الوداد</div>
-                    <div class="text-center w-1/3">
-                        <div class="text-lg font-black text-green-400">18:00</div>
-                        <div class="text-[10px] text-gray-500 italic underline">اضغط للمشاهدة</div>
-                    </div>
-                    <div class="text-center w-1/3 font-bold text-sm">الفتح</div>
-                </div>
-
+        <section class="px-5 space-y-4">
+            <div class="flex justify-between items-end mb-2">
+                <h3 class="text-xl font-black italic uppercase">مباريات <span class="text-blue-600">اليوم</span></h3>
+                <span id="match-count" class="text-[10px] font-bold text-gray-500">0 مبارة</span>
             </div>
-        </section>
 
-        <section class="px-4 space-y-4">
-             <h3 class="text-sm font-bold text-gray-400 uppercase">تصفح الدوريات</h3>
-             <div class="grid grid-cols-3 gap-3">
-                <div class="glass-card p-3 rounded-xl flex flex-col items-center border-b-2 border-green-600"><span class="text-2xl">🇲🇦</span></div>
-                <div class="glass-card p-3 rounded-xl flex flex-col items-center border-b-2 border-green-400"><span class="text-2xl">🇸🇦</span></div>
-                <div class="glass-card p-3 rounded-xl flex flex-col items-center border-b-2 border-purple-600"><span class="text-2xl">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span></div>
-             </div>
+            <div id="matches-container" class="space-y-4">
+                </div>
         </section>
     </main>
 
-    <footer class="fixed bottom-0 left-0 right-0 glass-card p-4 flex justify-around items-center border-t border-white/10 z-50">
-        <div class="flex flex-col items-center text-blue-500"><i class="fas fa-home text-xl"></i></div>
-        <div class="bg-blue-600 w-12 h-12 rounded-full flex items-center justify-center -mt-10 border-4 border-[#0b0f1a] shadow-lg"><i class="fas fa-play text-white"></i></div>
-        <div class="flex flex-col items-center text-gray-500"><i class="fas fa-cog text-xl"></i></div>
-    </footer>
-
     <script>
-        // تخزين الروابط الحالية للسيرفرات
-        let currentLinks = { s1: '', s2: '', s3: '' };
+        const player = videojs('match-player');
 
-        function openMatch(name, s1, s2, s3) {
-            // 1. تحديث البيانات
-            currentLinks = { s1, s2, s3 };
-            document.getElementById('channel-name').innerText = "بث مباشر: " + name;
-            document.getElementById('live-badge').classList.remove('hidden');
-            document.getElementById('server-list').classList.remove('hidden');
+        // جلب البيانات من LocalStorage أو استخدام بيانات افتراضية إذا كانت فارغة
+        const LEAGUES = JSON.parse(localStorage.getItem('leagues')) || {
+            39: { name: 'ENG', logo: 'https://media.api-sports.io/football/leagues/39.png' },
+            140: { name: 'ESP', logo: 'https://media.api-sports.io/football/leagues/140.png' }
+        };
 
-            // 2. تحديث المشغل
-            var player = videojs('main-player');
-            player.src({ src: s1, type: 'application/x-mpegURL' });
+        const matches = JSON.parse(localStorage.getItem('matches')) || [];
+
+        function init() {
+            const lFilter = document.getElementById('leagues-filter');
             
-            // 3. تشغيل والانتقال للمشغل
-            player.play();
-            document.getElementById('player-section').scrollIntoView({ behavior: 'smooth' });
+            // تنظيف الفلتر باستثناء زر "الكل"
+            lFilter.innerHTML = `
+                <button onclick="filterMatches('all')" class="flex-shrink-0 w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-900/40">
+                    <span class="text-[10px] font-black uppercase">الكل</span>
+                </button>
+            `;
+
+            // إضافة الدوريات المخزنة
+            Object.keys(LEAGUES).forEach(id => {
+                lFilter.innerHTML += `
+                    <button onclick="filterMatches(${id})" class="flex-shrink-0 w-14 h-14 rounded-2xl glass-card flex items-center justify-center p-2 border border-white/5">
+                        <img src="${LEAGUES[id].logo}" class="w-8 h-8 object-contain opacity-70">
+                    </button>
+                `;
+            });
+
+            renderMatches(matches);
         }
 
-        function changeServer(url) {
-            var player = videojs('main-player');
+        function renderMatches(data) {
+            const container = document.getElementById('matches-container');
+            document.getElementById('match-count').innerText = `${data.length} مباريات`;
+            
+            if (data.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-600 text-xs py-10 italic">لا توجد مباريات مضافة حالياً..</p>`;
+                return;
+            }
+
+            container.innerHTML = data.map(m => {
+                // التأكد من وجود شعار للدوري، وإلا استخدام شعار افتراضي
+                const leagueInfo = LEAGUES[m.league] || { name: 'LIVE', logo: '' };
+                
+                return `
+                <div onclick="playStream('${m.stream}', '${m.h} × ${m.a}')" class="glass-card p-6 rounded-[2.5rem] relative overflow-hidden group">
+                    <div class="flex justify-between items-center gap-4">
+                        <div class="flex flex-col items-center gap-3 w-1/3">
+                            <img src="${m.h_logo || 'https://via.placeholder.com/50'}" class="w-12 h-12 object-contain">
+                            <span class="text-xs font-black text-center truncate w-full">${m.h}</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="time-badge px-4 py-1.5 rounded-2xl text-[11px] font-black italic">${m.time}</div>
+                            <span class="text-[9px] text-red-500 font-bold uppercase ${m.time.includes('مباشر') ? 'animate-pulse' : ''}">${m.time.includes('مباشر') ? 'جارية الآن' : 'بث مباشر'}</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-3 w-1/3">
+                            <img src="${m.a_logo || 'https://via.placeholder.com/50'}" class="w-12 h-12 object-contain">
+                            <span class="text-xs font-black text-center truncate w-full">${m.a}</span>
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function playStream(url, title) {
+            if(!url) { alert('عفواً، لا يوجد رابط بث لهذه المباراة'); return; }
+            document.getElementById('video-container').style.display = 'block';
+            document.getElementById('player-title').innerText = title;
             player.src({ src: url, type: 'application/x-mpegURL' });
             player.play();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+
+        function closeStream() {
+            player.pause();
+            document.getElementById('video-container').style.display = 'none';
+        }
+
+        function filterMatches(id) {
+            const filtered = id === 'all' ? matches : matches.filter(m => m.league == id);
+            renderMatches(filtered);
+        }
+
+        // تحديث البيانات تلقائياً عند الدخول للصفحة
+        window.onload = init;
     </script>
 </body>
 </html>
